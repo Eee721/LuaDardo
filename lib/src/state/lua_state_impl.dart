@@ -993,6 +993,7 @@ class LuaStateImpl implements LuaState, LuaVM {
     return loadFileX(filename, "bt");
   }
 
+  static String fileLoadErrorCallback = "";
   @override
   ThreadStatus loadFileX(String filename, String mode) {
     try {
@@ -1001,6 +1002,7 @@ class LuaStateImpl implements LuaState, LuaVM {
     } catch (e, s) {
       print(e);
       print(s);
+      if (fileLoadErrorCallback != null) fileLoadErrorCallback(e);
       return ThreadStatus.lua_errfile;
     }
   }
