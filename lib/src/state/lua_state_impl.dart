@@ -993,7 +993,7 @@ class LuaStateImpl implements LuaState, LuaVM {
     return loadFileX(filename, "bt");
   }
 
-  static String fileLoadErrorCallback = "";
+  static dynamic fileLoadErrorCallback ;
   @override
   ThreadStatus loadFileX(String filename, String mode) {
     try {
