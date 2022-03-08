@@ -1237,8 +1237,10 @@ class LuaStateImpl implements LuaState, LuaVM {
     _stack.pc += n;
   }
   int errorlineNumber = -1024;
+  String errorSource ;
   void recordError(){
-    if (errorlineNumber<0) errorlineNumber = _stack.closure.proto.lineInfo[_stack.pc-1];
+    errorlineNumber = _stack.closure.proto.lineInfo[_stack.pc-1];
+    errorSource = _stack.closure.proto.source??"";
   }
   @override
   int fetch() {
