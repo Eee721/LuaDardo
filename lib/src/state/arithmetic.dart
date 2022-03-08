@@ -88,7 +88,7 @@ class Arithmetic{
     if (mm != null) {
       return ls.callMetamethod(a, b, mm);
     }
-
+    ls.recordError();
     throw Exception("arithmetic error!");
   }
 

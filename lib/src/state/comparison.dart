@@ -51,7 +51,7 @@ class Comparison {
     if (mm != null) {
       return LuaValue.toBoolean(ls.callMetamethod(a, b, mm));
     }
-
+    ls.recordError();
     throw Exception("comparison error!");
   }
 
@@ -82,7 +82,7 @@ class Comparison {
     if (mm != null) {
       return LuaValue.toBoolean(ls.callMetamethod(b, a, mm));
     }
-
+    ls.recordError();
     throw Exception("comparison error!");
   }
 

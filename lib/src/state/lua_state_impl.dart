@@ -244,6 +244,7 @@ class LuaStateImpl implements LuaState, LuaVM {
   void setTop(int idx) {
     int newTop = _stack.absIndex(idx);
     if (newTop < 0) {
+      recordError();
       throw Exception("stack underflow!");
     }
 
@@ -353,6 +354,7 @@ class LuaStateImpl implements LuaState, LuaVM {
     if (result != null) {
       _stack.push(result);
     } else {
+      recordError();
       throw Exception("arithmetic error!");
     }
   }
@@ -373,6 +375,7 @@ class LuaStateImpl implements LuaState, LuaVM {
       case CmpOp.lua_op_le:
         return Comparison.le(a, b, this);
       default:
+        recordError();
         throw Exception("invalid compare op!");
     }
   }
@@ -399,6 +402,7 @@ class LuaStateImpl implements LuaState, LuaVM {
           continue;
         }
 
+        recordError();
         throw Exception("concatenation error!");
       }
     }
@@ -421,6 +425,7 @@ class LuaStateImpl implements LuaState, LuaVM {
     if (val is LuaTable) {
       pushInteger(val.length());
     } else {
+      recordError();
       throw Exception("length error!");
     }
   }
@@ -474,6 +479,7 @@ class LuaStateImpl implements LuaState, LuaVM {
         }
       }
     }
+    recordError();
     throw Exception("${t.runtimeType}, not a table!"); // todo
   }
 
@@ -537,6 +543,7 @@ class LuaStateImpl implements LuaState, LuaVM {
         }
       }
     }
+    recordError();
     throw Exception("${t.runtimeType}, not a table!");
   }
 
@@ -563,6 +570,7 @@ class LuaStateImpl implements LuaState, LuaVM {
         _callDartClosure(nArgs, nResults, c);
       }
     } else {
+      recordError();
       throw Exception("not function!");
     }
   }
@@ -772,6 +780,7 @@ class LuaStateImpl implements LuaState, LuaVM {
     } else if (mtVal is LuaTable) {
       _setMetatable(val, mtVal);
     } else {
+      recordError();
       throw Exception("table expected!"); // todo
     }
   }
@@ -790,12 +799,14 @@ class LuaStateImpl implements LuaState, LuaVM {
       }
       return false;
     }
+    recordError();
     throw Exception("table expected!");
   }
 
   @override
   int error() {
     Object err = _stack.pop();
+    recordError();
     throw Exception(err.toString()); // TODO
   }
 
@@ -813,6 +824,7 @@ class LuaStateImpl implements LuaState, LuaVM {
         _popLuaStack();
       }
       _stack.push("$e"); // TODO
+      if (fileLoadErrorCallback != null) fileLoadErrorCallback(e);
       return ThreadStatus.lua_errrun;
     }
   }
@@ -1224,7 +1236,10 @@ class LuaStateImpl implements LuaState, LuaVM {
   void addPC(int n) {
     _stack.pc += n;
   }
-
+  int errorlineNumber = -1024;
+  void recordError(){
+    if (errorlineNumber<0) errorlineNumber = _stack.closure.proto.lineInfo[_stack.pc-1];
+  }
   @override
   int fetch() {
     return _stack.closure.proto.code[_stack.pc++];
