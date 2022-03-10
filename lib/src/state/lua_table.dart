@@ -52,7 +52,7 @@ class LuaTable {
     if (key is double && key.isNaN) {
       throw Exception("table index is NaN!");
     }
-
+    changed = true;
     key = floatToInteger(key);
     if (key is int) {
       int idx = key;
