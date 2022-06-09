@@ -1153,7 +1153,9 @@ class LuaStateImpl implements LuaState, LuaVM {
             if (v == v.toInt()){
               pushString("${v.toInt()}");
             }
-            pushString("$v");
+            else {
+              pushString("$v");
+            }
           }
           // else{
           //   pushString(sprintf("%g", [toNumber(idx)]));
