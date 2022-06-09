@@ -158,7 +158,7 @@ class LuaStateImpl implements LuaState, LuaVM {
   @override
   bool isString(int idx) {
     LuaType t = type(idx);
-    return t == LuaType.luaString || t == LuaType.luaNumber;
+    return t == LuaType.luaString ;//|| t == LuaType.luaNumber;
   }
 
   @override
@@ -1148,8 +1148,16 @@ class LuaStateImpl implements LuaState, LuaVM {
           if (isInteger(idx)) {
             pushString("${toInteger(idx)}"); // todo
           } else {
-            pushString(sprintf("%g", [toNumber(idx)]));
+            //pushString(sprintf("%g", [toNumber(idx)]));
+            var v = toNumber(idx);
+            if (v == v.toInt()){
+              pushString("${v.toInt()}");
+            }
+            pushString("$v");
           }
+          // else{
+          //   pushString(sprintf("%g", [toNumber(idx)]));
+          // }
           break;
         case LuaType.luaString:
           pushValue(idx);
