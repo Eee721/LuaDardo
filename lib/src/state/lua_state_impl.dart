@@ -386,7 +386,7 @@ class LuaStateImpl implements LuaState, LuaVM {
       _stack.push("");
     } else if (n >= 2) {
       for (int i = 1; i < n; i++) {
-        if (isString(-1) && isString(-2)) {
+        if ((isString(-1)||isNumber(-1)) && (isString(-2))||isNumber(-2)) {
           String s2 = toStr(-1);
           String s1 = toStr(-2);
           pop(2);
