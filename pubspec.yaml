@@ -7,7 +7,11 @@ environment:
   sdk: '>=2.9.3 <3.0.0'
 
 dependencies:
-  sprintf: "^5.0.0"
+  sprintf:
+    git:
+      url: https://github.com/Eee721/dart-sprintf
+      path: .
+      ref : ff9df3a79a5f439439666af29b11d37d9d7ef1ed
 
 dev_dependencies:
   pedantic: ^1.9.0
