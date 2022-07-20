@@ -382,6 +382,7 @@ class LuaStateImpl implements LuaState, LuaVM {
 
   @override
   void concat(int n) {
+    recordError();
     if (n == 0) {
       _stack.push("");
     } else if (n >= 2) {
@@ -402,7 +403,7 @@ class LuaStateImpl implements LuaState, LuaVM {
           continue;
         }
 
-        recordError();
+
         throw Exception("concatenation error!");
       }
     }
@@ -521,7 +522,13 @@ class LuaStateImpl implements LuaState, LuaVM {
     if (t is LuaTable) {
       LuaTable tbl = t;
       if (raw || tbl.get(k) != null || !tbl.hasMetafield("__newindex")) {
-        tbl.put(k, v);
+        try{
+          tbl.put(k, v);
+        }
+        catch(e){
+          recordError();
+          throw e;
+        }
         return;
       }
     }
@@ -809,7 +816,7 @@ class LuaStateImpl implements LuaState, LuaVM {
     recordError();
     throw Exception(err.toString()); // TODO
   }
-
+  List errStack ;//= List();
   @override
   ThreadStatus pCall(int nArgs, int nResults, int msgh) {
     LuaStack caller = _stack;
@@ -820,8 +827,11 @@ class LuaStateImpl implements LuaState, LuaVM {
       if (msgh != 0) {
         throw e;
       }
+      errStack = List();
       while (_stack != caller) {
+        errStack.add(_stack);
         _popLuaStack();
+        // errStack.add(_popLuaStack());
       }
       _stack.push("$e"); // TODO
       if (fileLoadErrorCallback != null) fileLoadErrorCallback(e);
@@ -1244,17 +1254,97 @@ class LuaStateImpl implements LuaState, LuaVM {
   //**************************************************
   @override
   void addPC(int n) {
+    // _stack.lastPc = _stack.pc;
     _stack.pc += n;
+    // recordError();
   }
-  int errorlineNumber = -1024;
-  String errorSource ;
+  // int errorlineNumber = -1024;
+  // String errorSource ;
+  // String rootSource ;
+  // String _stackTrace ;
   void recordError(){
-    errorlineNumber = _stack.closure.proto.lineInfo[_stack.pc-1];
-    errorSource = _stack.closure.proto.source??"";
+    // if (_stack?.closure?.proto == null) return ;
+    // errorlineNumber = _stack.closure.proto.lineInfo[_stack.pc-1];
+    // if (_stack.closure.proto.source != null && _stack.closure.proto.source.trim() != "") {
+    //   errorSource = _stack.closure.proto.source;
+    // }
+    // _stackTrace = _getStackTrace();
   }
+  // String getStackTrace(){
+  //   return _stackTrace??"";
+  // }
+  List crtLuaStack = List();
+  String getStackTrace(){
+    StringBuffer sb = StringBuffer();
+    var lst = errStack;
+    if (lst == null){
+      crtLuaStack.clear();
+      lst = crtLuaStack;
+      var top = _stack;
+      while(top != null){
+        lst.add(top);
+        top = top.prev;
+      }
+    }
+
+    for(int i = 0; i < lst.length ; ++i){
+      var crtStack = (lst[i] as LuaStack);
+      sb.write("file : ");
+      var source = crtStack.closure?.proto?.source;
+      if (source == null){
+        source = crtStack.closure?.dartFunc?.toString()??"";
+      }
+      if (source.length > 256) source = source.substring(0,256) + "......\n";
+      sb.write(source);
+      sb.write(" @ line : ");
+      // print("----- stack $source");
+      if(crtStack.pc >= 0){
+        // var linfos = crtStack.closure?.proto?.lineInfo;
+        // if (linfos != null){
+        //   for(var kkk = 0 ;kkk < linfos.length ; ++kkk){
+        //     print("----- ${linfos[kkk]} ${crtStack.closure?.proto?.code[kkk]}");
+        //   }
+        // }
+        // crtStack.closure?.proto?.lineInfo.forEach((element) {
+        //   print("----- $element");
+        // });
+        var line = crtStack.closure?.proto?.lineInfo?.elementAt(crtStack.lastPc)??0;
+        if (line <=0){
+          if (crtStack.lastPc>0){
+            line = crtStack.closure?.proto?.lineInfo?.elementAt(crtStack.lastPc-1);
+          }
+        }
+        sb.write(line);
+      }
+      else{
+        sb.write(-1);
+      }
+      sb.write("\n");
+      // crtStack = crtStack.prev;
+    }
+    // var crtStack = _stack;
+    // while(crtStack != null){
+    //   sb.write("file : ");
+    //   sb.write(crtStack.closure?.proto?.source??"");
+    //   sb.write(" @ line : ");
+    //   if(crtStack.pc >= 0){
+    //     sb.write(crtStack.closure?.proto?.lineInfo?.elementAt(crtStack.pc-1)??-1);
+    //   }
+    //   else{
+    //     sb.write(-1);
+    //   }
+    //   sb.write("\n");
+    //   crtStack = crtStack.prev;
+    // }
+    return sb.toString();
+  }
+
   @override
   int fetch() {
-    return _stack.closure.proto.code[_stack.pc++];
+    _stack.lastPc = _stack.pc;
+    var res =  _stack.closure.proto.code[_stack.pc++];
+    // recordError();
+    return res;
   }
 
   @override

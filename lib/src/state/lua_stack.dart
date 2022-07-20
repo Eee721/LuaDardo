@@ -16,6 +16,7 @@ class LuaStack {
   Map<int, UpvalueHolder> openuvs;
   /// Program Counter
   int pc = 0;
+  int lastPc = 0;
   /// linked list
   LuaStack prev;
 

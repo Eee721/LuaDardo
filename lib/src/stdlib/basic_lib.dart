@@ -49,23 +49,23 @@ class BasicLib {
 // http://www.lua.org/manual/5.3/manual.html#pdf-print
 // lua-5.3.4/src/lbaselib.c#luaB_print()
   static int _basePrint(LuaState ls) {
-    int n = ls.getTop(); /* number of arguments */
-    ls.getGlobal("tostring");
-    for (int i = 1; i <= n; i++) {
-      ls.pushValue(-1); /* function to be called */
-      ls.pushValue(i); /* value to print */
-      ls.call(1, 1);
-      String s = ls.toStr(-1); /* get result */
-      if (s == null) {
-        return ls.error2("'tostring' must return a string to 'print'");
+      int n = ls.getTop(); /* number of arguments */
+      ls.getGlobal("tostring");
+      for (int i = 1; i <= n; i++) {
+        ls.pushValue(-1); /* function to be called */
+        ls.pushValue(i); /* value to print */
+        ls.call(1, 1);
+        String s = ls.toStr(-1); /* get result */
+        if (s == null) {
+          return ls.error2("'tostring' must return a string to 'print'");
+        }
+        if (i > 1) {
+          print("\t");
+        }
+        print(s);
+        ls.pop(1); /* pop result */
       }
-      if (i > 1) {
-        stdout.write("\t");
-      }
-      stdout.write(s);
-      ls.pop(1); /* pop result */
-    }
-    stdout.write('\n');
+      print('\n');
     return 0;
   }
 
